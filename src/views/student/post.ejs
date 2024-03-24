@@ -1,0 +1,44 @@
+<!-- studentPosts.ejs -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Posts</title>
+  <!-- Liên kết với Bootstrap 5 CSS -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    .post {
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container mt-5">
+    <%- include('../partials/navbar') %>
+
+    <h1>Student Posts</h1>
+    <% posts.forEach((post) => { %>
+      <div class="post">
+        <h3><%= post.article_title %></h3>
+        <p><%= post.article_content %></p>
+        <% if (post.article_file && post.article_file.endsWith('.jpg') || post.article_file.endsWith('.jpeg') || post.article_file.endsWith('.png') || post.article_file.endsWith('.gif')) { %>
+            <img src="http://localhost:3000/uploads/<%= post.article_file %>" class="img-fluid" alt="Attachment">
+          <% } else if (post.article_file && post.article_file.endsWith('.pdf') || post.article_file.endsWith('.doc') || post.article_file.endsWith('.docx') || post.article_file.endsWith('.txt')) { %>
+            <p>Attached document: <a download href="http://localhost:3000/uploads/<%= post.article_file %>"><%= post.article_file %></a></p>
+          <% } %>
+        <!-- Thêm nút sửa bài viết -->
+        <div></div>
+        <br>
+        <div></div>
+        <a href="/student/editArticle/<%= post.article_id %>" class="btn btn-primary">Edit</a>
+      </div>
+    <% }); %>
+  </div>
+
+  <!-- Liên kết với Bootstrap 5 JS và các thư viện JavaScript cần thiết -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.10.2/umd/popper.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/js/bootstrap.min.js"></script>
+</body>
+</html>

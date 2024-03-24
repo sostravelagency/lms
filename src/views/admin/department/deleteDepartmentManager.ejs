@@ -1,0 +1,36 @@
+<!-- deleteDepartmentManager.ejs -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Delete Department Manager</title>
+  <!-- Liên kết với Bootstrap 5 CSS -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+  <div class="container mt-5">
+    <%- include('../../partials/navbarAdmin') %>
+
+
+    <div class="row">
+      <div class="col-md-6">
+        <h1>Delete Department Manager</h1>
+        <p>Are you sure you want to delete the following department manager?</p>
+        <p><strong>Name:</strong> <%= departmentManager.manager_name %></p>
+        <p><strong>Email:</strong> <%= departmentManager.manager_email %></p>
+        <p><strong>Department:</strong> <%= departmentManager.department_name %></p>
+        <form action="/admin/deleteDepartmentManager/<%= departmentManager.department_manager_id %>" method="post">
+          <button type="submit" class="btn btn-danger">Delete</button>
+          <a href="/admin/department" class="btn btn-secondary">Cancel</a>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Liên kết với Bootstrap 5 JS và các thư viện JavaScript cần thiết -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.10.2/umd/popper.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/js/bootstrap.min.js"></script>
+</body>
+</html>

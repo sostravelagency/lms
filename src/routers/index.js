@@ -1,0 +1,241 @@
+const express = require("express");
+const router = express.Router();
+const multer = require("multer"); // Thư viện để xử lý upload file
+const fs = require("fs"); // Thư viện để thao tác với file
+const path = require("path");
+const mysql = require("mysql2/promise");
+const nodemailer = require("nodemailer");
+const dbConfig = {
+  host: "localhost",
+  user: "root",
+  password: "",
+  database: "lms",
+};
+
+// Tạo pool kết nối MySQL
+const pool = mysql.createPool(dbConfig);
+
+// Thiết lập multer cho upload file
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, path.join(__dirname, "..", "uploads")); // Thư mục lưu trữ file upload
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + "-" + file.originalname); // Đổi tên file để tránh trùng lặp
+  },
+});
+const upload = multer({ storage: storage });
+
+router.post("/login", async (req, res) => {
+  const connection = await pool.getConnection();
+  const { email, password } = req.body;
+  const [rows] = await connection.query(
+    "SELECT * FROM SinhVien WHERE student_email = ? AND student_password= ?",
+    [email, password]
+  );
+  if (rows.length > 0) {
+    res.cookie("uid", rows[0].student_id);
+    res.cookie("role", "student");
+    connection.release();
+    return res.redirect("student");
+  }
+  const [rows2] = await connection.query(
+    "SELECT * FROM Admin WHERE admin_account = ? AND admin_password = ?",
+    [email, password]
+  );
+  if (rows2.length > 0) {
+    res.cookie("uid", rows2[0].id);
+    res.cookie("role", "admin");
+    connection.release();
+    return res.redirect("admin/student");
+  } 
+  const [rows3] = await connection.query(
+    "SELECT * FROM QuanLyKhoa WHERE manager_email = ? AND manager_password = ?",
+    [email, password]
+  );
+  if (rows3.length > 0) {
+    res.cookie("uid", rows3[0].department_manager_id);
+    res.cookie("role", "d_manager");
+    connection.release();
+    return res.redirect("department/student");
+  } 
+  else {
+    return res.send(
+      "Tài khoản hoặc mật khẩu không chính xác hoặc không tồn tại"
+    );
+  }
+});
+
+router.post("/student/addArticle", upload.single("file"), async (req, res) => {
+  const { title, content, student_id } = req.body;
+  const file = req.file;
+  try {
+    const connection = await pool.getConnection();
+    const [rows] = await connection.query(
+      "INSERT INTO BaiViet(article_title, article_content, article_file, article_author_id, article_created_at, article_updated_at) VALUES(?, ?, ?, ?, ?, ?)",
+      [
+        title,
+        content,
+        file.filename,
+        student_id,
+        new Date().toString(),
+        new Date().toString(),
+      ]
+    );
+    connection.release();
+    // res.json(rows);
+    res.send("Bài viết đã được đăng thành công");
+  } catch (error) {
+    console.error("Lỗi truy vấn cơ sở dữ liệu:", error);
+    res.status(500).json({ err: "Lỗi truy vấn cơ sở dữ liệu" });
+  }
+});
+
+router.post("/admin/addstudent", async (req, res) => {
+  const { name, email, password, department } = req.body;
+  try {
+    const connection = await pool.getConnection();
+    const [rows] = await connection.query(
+      "INSERT INTO SinhVien(student_name, student_email, student_password, student_department_id) VALUES(?, ?, ?, ?)",
+      [name, email, password, department]
+    );
+    connection.release();
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: "datistpham@gmail.com", // Email của bạn
+        pass: "xvthjqdnifhywkbt", // Mật khẩu của bạn
+      },
+    });
+
+    const mailOptions = {
+      from: "datistpham@gmail.com", // Email của bạn
+      to: email,
+      subject: "Thông tin tài khoản sinh viên",
+      text: `Xin chào ${name},\n\nTài khoản của bạn đã được tạo.\nTên đăng nhập: ${email}\nMật khẩu: ${password} (mật khẩu của bạn)\n\nXin cảm ơn.`,
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log("Email sent successfully");
+    return res.send("Đã thêm sinh viên thành công");
+  } catch (error) {
+    console.error("Lỗi truy vấn cơ sở dữ liệu:", error);
+    return res.status(500).json({ err: "Lỗi truy vấn cơ sở dữ liệu" });
+  }
+});
+
+router.post("/admin/updateStudent/:student_id", async (req, res) => {
+  const { name, email, department } = req.body;
+  const { student_id } = req.params;
+  const connection = await pool.getConnection();
+  const [rows] = await connection.query(
+    "UPDATE SinhVien SET student_name= ?, student_email= ?, student_department_id= ? WHERE student_id= ?",
+    [name, email, department, student_id]
+  );
+  connection.release();
+  return res.send("Đã cập nhật sinh viên thành công");
+});
+
+router.post("/admin/deleteStudent/:student_id", async (req, res) => {
+  const { student_id } = req.params;
+  const connection = await pool.getConnection();
+  const [rows] = await connection.query(
+    "DELETE FROM SinhVien WHERE student_id= ?",
+    [student_id]
+  );
+  connection.release();
+  return res.send("Đã xoá sinh viên sinh viên thành công");
+});
+
+router.post("/admin/createDepartmentManager", async (req, res) => {
+  const { email, name, department, password } = req.body;
+  const connection = await pool.getConnection();
+  const [rows] = await connection.query(
+    "INSERT INTO QuanLyKhoa(department_id, manager_name, manager_email, manager_password ) VALUES(?, ?, ?, ?)",
+    [department, name, email, password]
+  );
+  connection.release();
+  return res.send(`Đã thêm người quản lý khoa ${department} thành công`);
+});
+
+router.post(
+  "/student/updateArticle/:article_id",
+  upload.single("file"),
+  async (req, res) => {
+    if (req.file) {
+      const file = req.file.filename;
+      const { title, content } = req.body;
+      const { article_id } = req.params;
+      const connection = await pool.getConnection();
+      const [rows] = await connection.query(
+        "UPDATE BaiViet SET article_title= ?, article_content= ?, article_file= ? WHERE article_id= ?",
+        [title, content, file, article_id]
+      );
+      connection.release();
+      return res.send("Đã cập nhật bài viết thành công");
+    }
+    const { title, content, file_old } = req.body;
+    const { article_id } = req.params;
+    const connection = await pool.getConnection();
+    const [rows] = await connection.query(
+      "UPDATE BaiViet SET article_title= ?, article_content= ?, article_file= ? WHERE article_id= ?",
+      [title, content, file_old, article_id]
+    );
+    connection.release();
+    return res.send("Đã cập nhật bài viết thành công");
+  }
+);
+
+router.post("/admin/updateDepartmentManager/:manager_id", async (req, res) => {
+  const { name, email, department } = req.body;
+  const { manager_id } = req.params;
+  const connection = await pool.getConnection();
+  const [rows] = await connection.query(
+    "UPDATE QuanLyKhoa SET manager_name= ?, manager_email= ?, department_id= ? WHERE department_manager_id= ?",
+    [name, email, department, manager_id]
+  );
+  connection.release();
+  return res.send("Đã cập nhật quản lý khoa thành công");
+});
+
+router.post("/admin/deleteDepartmentManager/:manager_id", async (req, res) => {
+  const { manager_id } = req.params;
+  const connection = await pool.getConnection();
+  const [rows] = await connection.query(
+    "DELETE FROM QuanLyKhoa WHERE department_manager_id= ?",
+    [manager_id]
+  );
+  connection.release();
+  return res.send("Đã xoá quản lý khoa thành công");
+});
+
+router.post(
+  "/updateArticle/:article_id",
+  upload.single("file"),
+  async (req, res) => {
+    if (req.file) {
+      const file = req.file.filename;
+      const { title, content } = req.body;
+      const { article_id } = req.params;
+      const connection = await pool.getConnection();
+      const [rows] = await connection.query(
+        "UPDATE BaiViet SET article_title= ?, article_content= ?, article_file= ? WHERE article_id= ?",
+        [title, content, file, article_id]
+      );
+      connection.release();
+      return res.send("Đã cập nhật bài viết thành công");
+    }
+    const { title, content, file_old } = req.body;
+    const { article_id } = req.params;
+    const connection = await pool.getConnection();
+    const [rows] = await connection.query(
+      "UPDATE BaiViet SET article_title= ?, article_content= ?, article_file= ? WHERE article_id= ?",
+      [title, content, file_old, article_id]
+    );
+    connection.release();
+    return res.send("Đã cập nhật bài viết thành công");
+  }
+);
+
+
+module.exports = router;

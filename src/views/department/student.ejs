@@ -1,0 +1,52 @@
+<!-- studentList.ejs -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student List</title>
+  <!-- Liên kết với Bootstrap 5 CSS -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+  <div class="container mt-5">
+    <%- include('../partials/navbarDepartment') %>
+
+    <div class="row">
+      <div class="col-md-8">
+        <h1>Student List</h1>
+        <table class="table">
+          <thead>
+            <tr>
+              <th scope="col">#</th>
+              <th scope="col">Name</th>
+              <th scope="col">Email</th>
+              <th scope="col">Department</th>
+              <th scope="col">Actions</th> <!-- Thêm cột cho các hành động -->
+            </tr>
+          </thead>
+          <tbody>
+            <% students.forEach((student, index) => { %>
+              <tr>
+                <th scope="row"><%= index + 1 %></th>
+                <td><%= student.student_name %></td>
+                <td><%= student.student_email %></td>
+                <td><%= student.student_department_id %></td>
+                <td>
+                  <a href="/students/edit/<%= student.student_id %>" class="btn btn-primary btn-sm">Edit</a> <!-- Nút sửa sinh viên -->
+                  <a href="/students/delete/<%= student.student_id %>" class="btn btn-danger btn-sm">Delete</a> <!-- Nút xóa sinh viên -->
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Liên kết với Bootstrap 5 JS và các thư viện JavaScript cần thiết -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.10.2/umd/popper.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/js/bootstrap.min.js"></script>
+</body>
+</html>
