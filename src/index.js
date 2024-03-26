@@ -79,8 +79,10 @@ app.get("/abc", (req, res)=> {
   res.render("a", {title: "abc"})
 })
 
-app.get("/admin/addStudent", checkAdminRole, (req, res)=> {
-  res.render("admin/addStudent", {title: "Add student"})
+app.get("/admin/addStudent", checkAdminRole, async (req, res)=> {
+  const connection = await pool.getConnection();
+  const [rows] = await connection.query('SELECT * FROM Khoa');
+  res.render("admin/addStudent", {title: "Add student", faculty: rows})
 })
 
 app.get("/admin/student", checkAdminRole, async (req, res)=> {
@@ -110,8 +112,10 @@ app.get("/students/delete/:student_id", checkAdminRole, async (req, res)=> {
 
 // 
 
-app.get("/admin/department/addDepartmentManager", checkAdminRole, (req, res)=> {
-  return res.render("admin/department/addDepartmentManager", {title: "Add department Manager"})
+app.get("/admin/department/addDepartmentManager", checkAdminRole, async (req, res)=> {
+  const connection = await pool.getConnection();
+  const [rows] = await connection.query('SELECT * FROM Khoa');
+  return res.render("admin/department/addDepartmentManager", {title: "Add department Manager", faculty: rows})
 })
 
 app.get("/admin/department", async (req, res)=> {
@@ -222,6 +226,67 @@ app.get("/viewArticle/:post_id", async (req, res)=> {
 
 })
 
+app.get("/admin/addFaculty", async (req, res)=> {
+  res.render("admin/faculty/addFaculty", {title: "Add faculty"})
+})
+
+app.get("/admin/faculty", async (req, res)=> {
+  const connection= await pool.getConnection()
+  const [rows]= await connection.query('SELECT * FROM Khoa')
+  res.render("admin/faculty", {title: "Manage Faculty", departments: rows})
+})
+
+app.get("/admin/editFaculty/:facultyId", async (req, res)=> {
+  const connection= await pool.getConnection()
+  const facultyId= req.params.facultyId
+  const [rows]= await connection.query('SELECT * FROM Khoa WHERE department_id= ?', [facultyId])
+  console.log(rows[0])
+  res.render("admin/faculty/updateFaculty", {title: "Update Faculty", department: rows[0]})
+})
+
+app.get("/admin/deleteFaculty/:facultyId", async (req, res)=> {
+  const connection= await pool.getConnection()
+  const facultyId= req.params.facultyId
+  const [rows]= await connection.query('SELECT * FROM Khoa WHERE department_id= ?', [facultyId])
+  console.log(rows[0])
+  res.render("admin/faculty/deleteFaculty", {title: "Update Faculty", department: rows[0]})
+})
+
+app.get('/admin/faculty/student', async (req, res)=>{ 
+  const connection= await pool.getConnection()
+  const [departments] = await connection.execute('SELECT * FROM Khoa');
+  if (req.query.department) {
+    const departmentId = req.query.department;
+    const [selectedDepartment] = await connection.execute('SELECT * FROM Khoa WHERE department_id = ?', [departmentId]);
+    const [students] = await connection.execute('SELECT * FROM SinhVien WHERE student_department_id = ?', [departmentId]);
+    res.render('admin/facultyStudent', { departments, students, selectedDepartment });
+  } else {
+      res.render('admin/facultyStudent', { departments, students: undefined });
+  }
+})
+
+app.get("/admin/year", async (req, res)=> {
+  const connection= await pool.getConnection()
+
+  const [rows] = await connection.execute('SELECT * FROM academic_years');
+  await connection.release();
+  if(rows.length > 0) {
+    res.render("admin/year/view", {title: "Manage year", academicYear: rows[0]})
+
+  }
+  else {
+    res.redirect("/admin/year/setup")
+  }
+})
+
+app.get("/admin/year/setup", async (req, res)=> {
+  res.render("admin/year", {title: "Set up year"})
+})
+
+app.get("/admin/createDepartment", async (req, res)=> {
+
+  res.render("admin/addFaculty", {title: "Create faculty"})
+})
 // Khởi động server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

@@ -82,6 +82,24 @@ router.post("/student/addArticle", upload.single("file"), async (req, res) => {
         new Date().toString(),
       ]
     );
+    const [rows2]= await connection.query("SELECT * FROM SinhVien INNER JOIN QuanLyKhoa ON QuanLyKhoa.department_id = SinhVien.student_department_id WHERE SinhVien.student_id= ?", [student_id])
+    if(rows2.length >0 ) {
+      const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: "datistpham@gmail.com", // Email của bạn
+          pass: "xvthjqdnifhywkbt", // Mật khẩu của bạn
+        },
+      });
+  
+      const mailOptions = {
+        from: "datistpham@gmail.com", // Email của bạn
+        to: rows2[0].manager_email,
+        subject: "Thông báo sinh viên đăng tải bài viết",
+        text: `Xin chào ,Sinh viên ${rows2[0].student_name} đã đăng tải bài viết. Xin cảm ơn.`,
+      };
+      await transporter.sendMail(mailOptions);
+    }
     connection.release();
     // res.json(rows);
     res.send("Bài viết đã được đăng thành công");
@@ -155,7 +173,23 @@ router.post("/admin/createDepartmentManager", async (req, res) => {
     [department, name, email, password]
   );
   connection.release();
-  return res.send(`Đã thêm người quản lý khoa ${department} thành công`);
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: "datistpham@gmail.com", // Email của bạn
+      pass: "xvthjqdnifhywkbt", // Mật khẩu của bạn
+    },
+  });
+
+  const mailOptions = {
+    from: "datistpham@gmail.com", // Email của bạn
+    to: email,
+    subject: "Thông tin tài khoản người quản lý",
+    text: `Xin chào ${name},\n\nTài khoản của bạn đã được tạo.\nTên đăng nhập: ${email}\nMật khẩu: ${password} (mật khẩu của bạn)\n\nXin cảm ơn.`,
+  };
+
+  await transporter.sendMail(mailOptions);
+  return res.send(`Đã thêm người quản lý khoa ${name} thành công`);
 });
 
 router.post(
@@ -236,6 +270,42 @@ router.post(
     return res.send("Đã cập nhật bài viết thành công");
   }
 );
+
+router.post("/admin/editFaculty/:facultyId", async (req, res)=> {
+  const connection= await pool.getConnection()
+  const facultyId= req.params.facultyId
+  const {name }= req.body
+  const [rows]= await connection.query('UPDATE Khoa SET department_name= ? WHERE department_id= ?', [name, facultyId])
+  res.send("Update falcuty   successfully")
+})
+
+router.post("/admin/deleteFaculty/:facultyId", async (req, res)=> {
+  const connection= await pool.getConnection()
+  const facultyId= req.params.facultyId
+  const [rows]= await connection.query('DELETE  FROM Khoa WHERE department_id= ?', [facultyId])
+  res.send("Delete falcuty successfully")
+})
+
+router.post('/admin/createAcademicYear', async (req, res) => {
+  try { 
+      const { year, startDate, endDate } = req.body;
+      const connection= await pool.getConnection()
+      const [result] = await connection.execute('INSERT INTO academic_years (year, start_date, end_date) VALUES (?, ?, ?)', [year, startDate, endDate]);
+      await connection.release();
+      res.redirect('/admin/year');
+  } catch (error) {
+      console.error('Error:', error);
+      res.status(500).send('Internal Server Error');
+  }
+});
+
+router.post("/admin/addFaculty", async (req, res)=> {
+  const connection= await pool.getConnection()
+  const {name }= req.body
+  const [result] = await connection.execute('INSERT INTO Khoa(department_name) VALUES (?)', [name]);
+  await connection.release();
+  res.redirect('/admin/faculty');
+})
 
 
 module.exports = router;

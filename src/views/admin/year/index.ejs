@@ -1,0 +1,42 @@
+<!-- adminManageYear.ejs -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - Manage Academic Year</title>
+  <!-- Liên kết với Bootstrap 5 CSS -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+  <div class="container mt-5">
+    <h1>Admin - Manage Academic Year</h1>
+    <div class="row">
+      <div class="col-md-6">
+        <!-- Form để tạo năm học mới -->
+        <h2>Create New Academic Year</h2>
+        <form action="/admin/createAcademicYear" method="post">
+          <div class="mb-3">
+            <label for="year" class="form-label">Academic Year</label>
+            <input type="text" class="form-control" id="year" name="year" required>
+          </div>
+          <div class="mb-3">
+            <label for="startDate" class="form-label">Start Date</label>
+            <input type="date" class="form-control" id="startDate" name="startDate" required>
+          </div>
+          <div class="mb-3">
+            <label for="endDate" class="form-label">End Date</label>
+            <input type="date" class="form-control" id="endDate" name="endDate" required>
+          </div>
+          <button type="submit" class="btn btn-primary">Create</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Liên kết với Bootstrap 5 JS và các thư viện JavaScript cần thiết -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.10.2/umd/popper.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/js/bootstrap.min.js"></script>
+</body>
+</html>
