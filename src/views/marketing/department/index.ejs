@@ -10,10 +10,11 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-  <%- include('../../partials/navbarAdmin') %>
+    <%- include('../../partials/navbarMarketing') %>
+
   <div class="container mt-5">
 
-    <a href="/admin/department/addDepartmentManager" class="btn btn-primary btn-sm">Add department manager</a>
+    <a href="/marketing/department/addDepartmentManager" class="btn btn-primary btn-sm">Add department manager</a>
     <div class="row">
       <div class="col-md-8">
         <h1>Department List</h1>
@@ -31,8 +32,8 @@
                 <td><%= department.manager_name %></td>
                 <td><%= department.manager_email %></td>
                 <td>
-                  <a href="/admin/departments/edit/<%= department.department_manager_id %>" class="btn btn-primary btn-sm">Edit</a>
-                  <a href="/admin/departments/delete/<%= department.department_manager_id %>" class="btn btn-danger btn-sm">Delete</a>
+                  <a href="/marketing/departments/edit/<%= department.department_manager_id %>" class="btn btn-primary btn-sm">Edit</a>
+                  <a href="/marketing/departments/delete/<%= department.department_manager_id %>" class="btn btn-danger btn-sm">Delete</a>
                 </td>
               </tr>
             <% }); %>

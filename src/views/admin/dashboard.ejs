@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard</title>
+    <!-- Liên kết với Bootstrap 5 CSS -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <!-- Liên kết với Chart.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+  </head>
+  <body>
+    <%- include('../partials/navbarAdmin') %>
+    <div class="container mt-5">
+      <h1>Dashboard</h1>
+      <!-- Hiển thị thông tin thống kê -->
+      <div class="row">
+        <div class="col-md-6">
+          <p>Total Students: <span id="totalStudents"></span></p>
+          <p>Total Department Managers: <span id="totalDeptManagers"></span></p>
+        </div>
+      </div>
+      <canvas id="barChart" width="400" height="200"></canvas>
+      <!-- Biểu đồ tròn -->
+      <canvas id="pieChart" width="400" height="200"></canvas>
+    </div>
+
+    <!-- Script để lấy và hiển thị dữ liệu thống kê -->
+    <script>
+      // Sử dụng fetch API để gọi API để lấy dữ liệu thống kê
+      fetch("/admin/dashboardData")
+        .then((response) => response.json())
+        .then((data) => {
+          // Hiển thị dữ liệu thống kê lấy được từ API
+          document.getElementById("totalStudents").textContent =
+            data.totalStudents;
+          document.getElementById("totalDeptManagers").textContent =
+            data.totalDeptManagers;
+        })
+        .catch((error) => console.error("Error:", error));
+    </script>
+    <script>
+      // Lấy dữ liệu từ server
+      fetch("/admin/dashboardData")
+        .then((response) => response.json())
+        .then((data) => {
+          // Tạo biểu đồ cột
+          var ctxBar = document.getElementById("barChart").getContext("2d");
+          var barChart = new Chart(ctxBar, {
+            type: "bar",
+            data: {
+              labels: ["Total Students", "Total Dept Managers"],
+              datasets: [
+                {
+                  label: "Statistics",
+                  data: [data.totalStudents, data.totalDeptManagers],
+                  backgroundColor: [
+                    "rgba(255, 99, 132, 0.2)",
+                    "rgba(54, 162, 235, 0.2)",
+                  ],
+                  borderColor: [
+                    "rgba(255, 99, 132, 1)",
+                    "rgba(54, 162, 235, 1)",
+                  ],
+                  borderWidth: 1,
+                },
+              ],
+            },
+            options: {
+              scales: {
+                y: {
+                  beginAtZero: true,
+                },
+              },
+            },
+          });
+
+          // Tạo biểu đồ tròn
+          var ctxPie = document.getElementById("pieChart").getContext("2d");
+          var pieChart = new Chart(ctxPie, {
+            type: "pie",
+            data: {
+              labels: ["Total Students", "Total Dept Managers"],
+              datasets: [
+                {
+                  label: "Statistics",
+                  data: [data.totalStudents, data.totalDeptManagers],
+                  backgroundColor: [
+                    "rgba(255, 99, 132, 0.2)",
+                    "rgba(54, 162, 235, 0.2)",
+                  ],
+                  borderColor: [
+                    "rgba(255, 99, 132, 1)",
+                    "rgba(54, 162, 235, 1)",
+                  ],
+                  borderWidth: 1,
+                },
+              ],
+            },
+            options: {
+              scales: {
+                y: {
+                  beginAtZero: true,
+                },
+              },
+            },
+          });
+        })
+        .catch((error) => console.error("Error:", error));
+    </script>
+  </body>
+</html>

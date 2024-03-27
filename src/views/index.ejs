@@ -2,34 +2,71 @@
 
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Home</title>
-  <!-- Liên kết với Bootstrap 5 CSS -->
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
-  <style>
-    .post {
-      margin-bottom: 20px;
-    }
-  </style>
-</head>
-<body>
-
-  <div class="container mt-5">
-    <div class="row">
-      <div class="col-md-8">
-        <h1>Welcome to Your Website</h1>
-        <p>This is a simple website where students can contribute articles, upload images or documents, and manage departments.</p>
-        <a href="login">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Home</title>
+    <!-- Liên kết với Bootstrap 5 CSS -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      .post {
+        margin-bottom: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container mt-5">
+      <div class="row">
+        <div class="col-md-8">
+          <h1>Welcome to Your Website</h1>
+          <p>
+            This is a simple website where students can contribute articles,
+            upload images or documents, and manage departments.
+          </p>
+          <a href="login">
             <button class="btn btn-primary">Login</button>
-        </a>
+          </a>
+          <div>Default post homepage</div>
+          <div class="post">
+            <h3><%= post.article_title %></h3>
+            <p><%= post.article_content %></p>
+            <% if (post.article_file && post.article_file.endsWith('.jpg') ||
+            post.article_file.endsWith('.jpeg') ||
+            post.article_file.endsWith('.png') ||
+            post.article_file.endsWith('.gif')) { %>
+            <img
+              src="http://localhost:3000/uploads/<%= post.article_file %>"
+              class="img-fluid"
+              alt="Attachment"
+            />
+            <% } else if (post.article_file &&
+            post.article_file.endsWith('.pdf') ||
+            post.article_file.endsWith('.doc') ||
+            post.article_file.endsWith('.docx') ||
+            post.article_file.endsWith('.txt')) { %>
+            <p>
+              Attached document:
+              <a
+                download
+                href="http://localhost:3000/uploads/<%= post.article_file %>"
+                ><%= post.article_file %></a
+              >
+            </p>
+            <% } %>
+            <!-- Thêm nút sửa bài viết -->
+            <div></div>
+            <br />
+            <div></div>
+          </div>
+        </div>
+      </div>
     </div>
-    </div>
-  </div>
 
-  <!-- Liên kết với Bootstrap 5 JS và các thư viện JavaScript cần thiết -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.10.2/umd/popper.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/js/bootstrap.min.js"></script>
-</body>
+    <!-- Liên kết với Bootstrap 5 JS và các thư viện JavaScript cần thiết -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.10.2/umd/popper.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/js/bootstrap.min.js"></script>
+  </body>
 </html>

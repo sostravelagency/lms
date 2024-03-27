@@ -20,10 +20,19 @@
         </li>
         <% if (isLoggedIn) { %>
         <li class="nav-item">
-          <a class="nav-link" href="/logout">Logout</a>
+          <!-- Thêm mục mới cho nút "Thêm bài viết" -->
+          <a class="nav-link" href="/marketing/dashboard">Dashboard</a>
         </li>
-        <li class="nav-item"> <!-- Thêm mục mới cho nút "Thêm bài viết" -->
-          <a class="nav-link" href="/student/addArticle">Add Article</a>
+        <li class="nav-item">
+            <!-- Thêm mục mới cho nút "Thêm bài viết" -->
+            <a class="nav-link" href="/marketing/post">Manage post</a>
+          </li>
+          <li class="nav-item">
+            <!-- Thêm mục mới cho nút "Thêm bài viết" -->
+            <a class="nav-link" href="/marketing/department">Manage department manager</a>
+          </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/logout">Logout</a>
         </li>
         <% } else { %>
         <li class="nav-item">

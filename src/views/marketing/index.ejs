@@ -5,17 +5,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin - Manage Posts</title>
+  <title>Marketing - Manage Posts</title>
   <!-- Liên kết với Bootstrap 5 CSS -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Liên kết với Axios -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.8/axios.min.js" integrity="sha512-PJa3oQSLWRB7wHZ7GQ/g+qyv6r4mbuhmiDb8BjSFZ8NZ2a42oTtAq5n0ucWAwcQDlikAtkub+tPVCw4np27WCg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </head>
 <body>
+  <%- include('../partials/navbarMarketing') %>
   <div class="container mt-5">
     <div class="row">
       <div class="col-md-12">
-        <h1>Department - Manage Posts</h1>
+        <h1>Marketing - Manage Posts</h1>
+        <div class="mb-3">
+          <!-- Thêm nút download zip -->
+          <a href="/admin/downloadPostsZip" class="btn btn-primary">Download All Posts as ZIP</a>
+        </div>
         <table class="table">
           <thead>
             <tr>
@@ -41,8 +44,9 @@
                 <a href="/viewArticle/<%= post.article_id %>" class="btn btn-primary">View detail</a>
                 <a href="/editArticle/<%= post.article_id %>" class="btn btn-primary">Edit</a>
                 <a href="http://localhost:3000/uploads/<%= post.article_file %>" class="btn btn-secondary" download>Download</a>
-                <!-- Xử lý khi nhấn nút "Set as Default" -->
-                <button onclick="setDefaultPage('<%= post.article_id %>')" class="btn btn-info">Set as Default</button>
+                <form action="/admin/setDefaultPost/<%= post.id %>" method="post" style="display: inline;">
+                  <button type="submit" class="btn btn-info">Set as Default</button>
+                </form>
               </td>
             </tr>
             <% }); %>
@@ -55,25 +59,5 @@
   <!-- Liên kết với Bootstrap 5 JS và các thư viện JavaScript cần thiết -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.10.2/umd/popper.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/js/bootstrap.min.js"></script>
-
-  <script>
-    // Hàm xử lý khi nhấn nút "Set as Default"
-    function setDefaultPage(articleId) {
-      // Gửi yêu cầu POST đến server để set bài viết có id là articleId làm trang chính
-      axios.post('/set-default-page/' + articleId)
-        .then(function (response) {
-          // Xử lý khi server trả về phản hồi thành công
-          console.log(response.data);
-          // Hiện popup thông báo thành công
-          alert('Set as default successful');
-        })
-        .catch(function (error) {
-          // Xử lý khi có lỗi xảy ra
-          console.error(error);
-          // Hiện popup thông báo lỗi
-          alert('Error occurred');
-        });
-    }
-  </script>
 </body>
 </html>

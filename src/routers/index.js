@@ -5,6 +5,7 @@ const fs = require("fs"); // Thư viện để thao tác với file
 const path = require("path");
 const mysql = require("mysql2/promise");
 const nodemailer = require("nodemailer");
+const checkLoggedIn = require("../middleware/checkLogin");
 const dbConfig = {
   host: "localhost",
   user: "root",
@@ -25,12 +26,12 @@ const storage = multer.diskStorage({
   },
 });
 const upload = multer({ storage: storage });
-
+router.use(checkLoggedIn)
 router.post("/login", async (req, res) => {
   const connection = await pool.getConnection();
   const { email, password } = req.body;
   const [rows] = await connection.query(
-    "SELECT * FROM SinhVien WHERE student_email = ? AND student_password= ?",
+    "SELECT * FROM student WHERE student_email = ? AND student_password= ?",
     [email, password]
   );
   if (rows.length > 0) {
@@ -50,7 +51,7 @@ router.post("/login", async (req, res) => {
     return res.redirect("admin/student");
   } 
   const [rows3] = await connection.query(
-    "SELECT * FROM QuanLyKhoa WHERE manager_email = ? AND manager_password = ?",
+    "SELECT * FROM departmentManager WHERE manager_email = ? AND manager_password = ?",
     [email, password]
   );
   if (rows3.length > 0) {
@@ -72,7 +73,7 @@ router.post("/student/addArticle", upload.single("file"), async (req, res) => {
   try {
     const connection = await pool.getConnection();
     const [rows] = await connection.query(
-      "INSERT INTO BaiViet(article_title, article_content, article_file, article_author_id, article_created_at, article_updated_at) VALUES(?, ?, ?, ?, ?, ?)",
+      "INSERT into post(article_title, article_content, article_file, article_author_id, article_created_at, article_updated_at) VALUES(?, ?, ?, ?, ?, ?)",
       [
         title,
         content,
@@ -82,7 +83,7 @@ router.post("/student/addArticle", upload.single("file"), async (req, res) => {
         new Date().toString(),
       ]
     );
-    const [rows2]= await connection.query("SELECT * FROM SinhVien INNER JOIN QuanLyKhoa ON QuanLyKhoa.department_id = SinhVien.student_department_id WHERE SinhVien.student_id= ?", [student_id])
+    const [rows2]= await connection.query("SELECT * FROM student INNER JOIN departmentManager ON departmentManager.department_id = student.student_department_id WHERE student.student_id= ?", [student_id])
     if(rows2.length >0 ) {
       const transporter = nodemailer.createTransport({
         service: "gmail",
@@ -114,7 +115,7 @@ router.post("/admin/addstudent", async (req, res) => {
   try {
     const connection = await pool.getConnection();
     const [rows] = await connection.query(
-      "INSERT INTO SinhVien(student_name, student_email, student_password, student_department_id) VALUES(?, ?, ?, ?)",
+      "INSERT INTO student(student_name, student_email, student_password, student_department_id) VALUES(?, ?, ?, ?)",
       [name, email, password, department]
     );
     connection.release();
@@ -147,7 +148,7 @@ router.post("/admin/updateStudent/:student_id", async (req, res) => {
   const { student_id } = req.params;
   const connection = await pool.getConnection();
   const [rows] = await connection.query(
-    "UPDATE SinhVien SET student_name= ?, student_email= ?, student_department_id= ? WHERE student_id= ?",
+    "UPDATE student SET student_name= ?, student_email= ?, student_department_id= ? WHERE student_id= ?",
     [name, email, department, student_id]
   );
   connection.release();
@@ -158,7 +159,7 @@ router.post("/admin/deleteStudent/:student_id", async (req, res) => {
   const { student_id } = req.params;
   const connection = await pool.getConnection();
   const [rows] = await connection.query(
-    "DELETE FROM SinhVien WHERE student_id= ?",
+    "DELETE FROM student WHERE student_id= ?",
     [student_id]
   );
   connection.release();
@@ -169,7 +170,7 @@ router.post("/admin/createDepartmentManager", async (req, res) => {
   const { email, name, department, password } = req.body;
   const connection = await pool.getConnection();
   const [rows] = await connection.query(
-    "INSERT INTO QuanLyKhoa(department_id, manager_name, manager_email, manager_password ) VALUES(?, ?, ?, ?)",
+    "INSERT INTO departmentManager(department_id, manager_name, manager_email, manager_password ) VALUES(?, ?, ?, ?)",
     [department, name, email, password]
   );
   connection.release();
@@ -202,7 +203,7 @@ router.post(
       const { article_id } = req.params;
       const connection = await pool.getConnection();
       const [rows] = await connection.query(
-        "UPDATE BaiViet SET article_title= ?, article_content= ?, article_file= ? WHERE article_id= ?",
+        "UPDATE post SET article_title= ?, article_content= ?, article_file= ? WHERE article_id= ?",
         [title, content, file, article_id]
       );
       connection.release();
@@ -212,7 +213,7 @@ router.post(
     const { article_id } = req.params;
     const connection = await pool.getConnection();
     const [rows] = await connection.query(
-      "UPDATE BaiViet SET article_title= ?, article_content= ?, article_file= ? WHERE article_id= ?",
+      "UPDATE post SET article_title= ?, article_content= ?, article_file= ? WHERE article_id= ?",
       [title, content, file_old, article_id]
     );
     connection.release();
@@ -225,7 +226,7 @@ router.post("/admin/updateDepartmentManager/:manager_id", async (req, res) => {
   const { manager_id } = req.params;
   const connection = await pool.getConnection();
   const [rows] = await connection.query(
-    "UPDATE QuanLyKhoa SET manager_name= ?, manager_email= ?, department_id= ? WHERE department_manager_id= ?",
+    "UPDATE departmentManager SET manager_name= ?, manager_email= ?, department_id= ? WHERE department_manager_id= ?",
     [name, email, department, manager_id]
   );
   connection.release();
@@ -236,7 +237,7 @@ router.post("/admin/deleteDepartmentManager/:manager_id", async (req, res) => {
   const { manager_id } = req.params;
   const connection = await pool.getConnection();
   const [rows] = await connection.query(
-    "DELETE FROM QuanLyKhoa WHERE department_manager_id= ?",
+    "DELETE FROM departmentManager WHERE department_manager_id= ?",
     [manager_id]
   );
   connection.release();
@@ -253,7 +254,7 @@ router.post(
       const { article_id } = req.params;
       const connection = await pool.getConnection();
       const [rows] = await connection.query(
-        "UPDATE BaiViet SET article_title= ?, article_content= ?, article_file= ? WHERE article_id= ?",
+        "UPDATE post SET article_title= ?, article_content= ?, article_file= ? WHERE article_id= ?",
         [title, content, file, article_id]
       );
       connection.release();
@@ -263,7 +264,7 @@ router.post(
     const { article_id } = req.params;
     const connection = await pool.getConnection();
     const [rows] = await connection.query(
-      "UPDATE BaiViet SET article_title= ?, article_content= ?, article_file= ? WHERE article_id= ?",
+      "UPDATE post SET article_title= ?, article_content= ?, article_file= ? WHERE article_id= ?",
       [title, content, file_old, article_id]
     );
     connection.release();
@@ -275,14 +276,14 @@ router.post("/admin/editFaculty/:facultyId", async (req, res)=> {
   const connection= await pool.getConnection()
   const facultyId= req.params.facultyId
   const {name }= req.body
-  const [rows]= await connection.query('UPDATE Khoa SET department_name= ? WHERE department_id= ?', [name, facultyId])
+  const [rows]= await connection.query('update faculty SET department_name= ? WHERE department_id= ?', [name, facultyId])
   res.send("Update falcuty   successfully")
 })
 
 router.post("/admin/deleteFaculty/:facultyId", async (req, res)=> {
   const connection= await pool.getConnection()
   const facultyId= req.params.facultyId
-  const [rows]= await connection.query('DELETE  FROM Khoa WHERE department_id= ?', [facultyId])
+  const [rows]= await connection.query('DELETE  from faculty WHERE department_id= ?', [facultyId])
   res.send("Delete falcuty successfully")
 })
 
@@ -302,10 +303,62 @@ router.post('/admin/createAcademicYear', async (req, res) => {
 router.post("/admin/addFaculty", async (req, res)=> {
   const connection= await pool.getConnection()
   const {name }= req.body
-  const [result] = await connection.execute('INSERT INTO Khoa(department_name) VALUES (?)', [name]);
+  const [result] = await connection.execute('INSERT into faculty(department_name) VALUES (?)', [name]);
   await connection.release();
   res.redirect('/admin/faculty');
 })
+
+
+router.post("/admin/createMarketing", async (req, res) => {
+  const { email, name, password } = req.body;
+  const connection = await pool.getConnection();
+  const [rows] = await connection.query(
+    "INSERT INTO marketing(marketing_name, marketing_email, marketing_password ) VALUES(?, ?, ?)",
+    [name, email, password]
+  );
+  connection.release();
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: "datistpham@gmail.com", // Email của bạn
+      pass: "xvthjqdnifhywkbt", // Mật khẩu của bạn
+    },
+  });
+
+  const mailOptions = {
+    from: "datistpham@gmail.com", // Email của bạn
+    to: email,
+    subject: "Infomation's marketing manager",
+    text: `Hi ${name},\n\nYour account is created.\nAccount: ${email}\nPassword: ${password} (your password)\n\nBest regard.`,
+  };
+
+  await transporter.sendMail(mailOptions);
+  return res.send(`Successful to create marketing manager ${name}`);
+});
+
+
+router.post("/admin/updateMarketing/:manager_id", async (req, res) => {
+  const { name, email } = req.body;
+  const { manager_id } = req.params;
+  const connection = await pool.getConnection();
+  const [rows] = await connection.query(
+    "UPDATE marketing SET marketing_name= ?, marketing_email= ? WHERE marketing_id= ?",
+    [name, email, manager_id]
+  );
+  connection.release();
+  return res.render("admin/marketing/updateMarketing", {success: true});
+});
+
+router.post("/admin/deleteMarketing/:manager_id", async (req, res) => {
+  const { manager_id } = req.params;
+  const connection = await pool.getConnection();
+  const [rows] = await connection.query(
+    "DELETE FROM marketing WHERE marketing_id= ?",
+    [manager_id]
+  );
+  connection.release();
+  return res.send("Successfully delete marketing manager");
+});
 
 
 module.exports = router;
