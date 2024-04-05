@@ -72,7 +72,7 @@ app.get("/", async (req, res) => {
   const connection = await pool.getConnection();
     const [rows] = await connection.query("SELECT * FROM post WHERE article_default= 1");
     connection.release();
-  res.render("index", { title: "Home page", post: rows[0] });
+  res.render("index", { title: "Home page", posts: rows });
 });
 
 app.get("/home", (req, res) => {
@@ -181,6 +181,11 @@ app.get("/student", (req, res) => {
 
 app.get("/student/addArticle", (req, res) => {
   res.render("student/addArticle", { title: "Add new post" });
+});
+
+
+app.get("/admin/addArticle", (req, res) => {
+  res.render("admin/addArticle", { title: "Add new post" });
 });
 
 app.get("/student/post", async (req, res) => {
@@ -308,6 +313,17 @@ app.get("/department/post", async (req, res) => {
   connection.release();
   console.log(rows);
   res.render("department/post", { title: "Post manager", posts: rows });
+});
+
+app.get("/admin/post/manage", async (req, res) => {
+  const connection = await pool.getConnection();
+  // const manager_id = req.cookies.uid;
+  const [rows0] = await connection.query(
+    "SELECT * FROM admin_post",
+  );
+  
+  connection.release();
+  res.render("admin/post", { title: "Post manager", posts: rows0 });
 });
 
 app.get("/editArticle/:article_id", async (req, res) => {
@@ -441,10 +457,23 @@ app.get("/admin/dashboardData", async (req, res) => {
   const [deptManagerCountRows] = await connection.execute(
     "SELECT COUNT(*) AS totalDeptManagers FROM departmentManager"
   );
+  const [departmentsQuery] = await pool.query('SELECT COUNT(*) AS totalDepartments FROM faculty');
+    const totalDepartments = departmentsQuery[0].totalDepartments;
+
+    // Lấy số lượng posts
+    const [postsQuery] = await pool.query('SELECT COUNT(*) AS totalPosts FROM post');
+    const totalPosts = postsQuery[0].totalPosts;
+
+    // Lấy số lượng marketing managers
+    const [managersQuery] = await pool.query('SELECT COUNT(*) AS totalManagers FROM marketing');
+    const totalManagers = managersQuery[0].totalManagers;
   connection.release();
   res.json({
     totalStudents: studentCountRows[0].totalStudents,
     totalDeptManagers: deptManagerCountRows[0].totalDeptManagers,
+    totalDepartments,
+      totalPosts,
+      totalManagers
   });
 });
 
@@ -548,7 +577,7 @@ app.post("/student/addArticle", upload.single("file"), async (req, res) => {
         title,
         content,
         file.filename,
-        student_id,
+        parseInt(student_id),
         new Date().toString(),
         new Date().toString(),
       ]
@@ -571,6 +600,30 @@ app.post("/student/addArticle", upload.single("file"), async (req, res) => {
       };
       await transporter.sendMail(mailOptions);
     }
+    connection.release();
+    // res.json(rows);
+    res.send("Bài viết đã được đăng thành công");
+  } catch (error) {
+    console.error("Lỗi truy vấn cơ sở dữ liệu:", error);
+    res.status(500).json({ err: "Lỗi truy vấn cơ sở dữ liệu" });
+  }
+});
+
+app.post("/admin/addArticle", upload.single("file"), async (req, res) => {
+  const { title, content } = req.body;
+  const file = req.file;
+  try {
+    const connection = await pool.getConnection();
+    const [rows] = await connection.query(
+      "INSERT into admin_post(article_title, article_content, article_file, article_created_at, article_updated_at) VALUES(?, ?, ?, ?, ?)",
+      [
+        title,
+        content,
+        file.filename,
+        new Date().toString(),
+        new Date().toString(),
+      ]
+    );
     connection.release();
     // res.json(rows);
     res.send("Bài viết đã được đăng thành công");
@@ -919,11 +972,161 @@ app.get("/marketing/post", async (req, res)=> {
 app.post("/set-default-page/:article_id", async (req, res)=> {
   const article_id= req.params.article_id
   const connection = await pool.getConnection();
-  const [rows] = await connection.query("UPDATE post SET article_default= 0 ");
+  // const [rows] = await connection.query("UPDATE post SET article_default= 0 ");
   const [rows1] = await connection.query("UPDATE post SET article_default= 1 WHERE article_id= ? ", article_id);
   connection.release();
   return res.json({success: true})
 })
+
+app.get("/editArticle/admin/:article_id", async (req, res) => {
+  const connection = await pool.getConnection();
+  // const student_id = req.cookies.uid;
+  const article_id = req.params.article_id;
+  const [rows] = await connection.query(
+    "SELECT * FROM admin_post WHERE article_id= ?",
+    [article_id]
+  );
+  connection.release();
+  res.render("admin/editArticle", { title: "Post", article: rows[0] });
+});
+
+app.post(
+  "/editArticle/admin/:article_id",
+  upload.single("file"),
+  async (req, res) => {
+    if (req.file) {
+      const file = req.file.filename;
+      const { title, content } = req.body;
+      const { article_id } = req.params;
+      const connection = await pool.getConnection();
+      const [rows] = await connection.query(
+        "UPDATE admin_post SET article_title= ?, article_content= ?, article_file= ? WHERE article_id= ?",
+        [title, content, file, article_id]
+      );
+      connection.release();
+      return res.send("Đã cập nhật bài viết thành công");
+    }
+    const { title, content, file_old } = req.body;
+    const { article_id } = req.params;
+    const connection = await pool.getConnection();
+    const [rows] = await connection.query(
+      "UPDATE admin_post SET article_title= ?, article_content= ?, article_file= ? WHERE article_id= ?",
+      [title, content, file_old, article_id]
+    );
+    connection.release();
+    return res.send("Đã cập nhật bài viết thành công");
+  }
+);
+
+
+app.delete('/deleteArticle/admin/:articleId', async (req, res) => {
+  try {
+    const { articleId } = req.params;
+    const connection = await pool.getConnection();
+    const [rows] = await connection.query(
+      "DELETE FROM admin_post  WHERE article_id= ?",
+      [articleId]
+    );
+    connection.release()
+    // Thực hiện xoá bài viết có id là articleId từ cơ sở dữ liệu ở đây
+    // Sau khi xoá thành công, gửi phản hồi về client
+    res.status(200).json({ message: 'Delete successful' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+
+app.get('/admin/downloadPostAsZip/:articleId', async (req, res) => {
+  try {
+    const articleId = req.params.articleId;
+    const connection = await pool.getConnection();
+    const [rows] = await connection.query(
+      "SELECT * FROM post WHERE article_id= ?",
+      [articleId]
+    );
+    connection.release()
+    const post= rows[0]
+
+    if (!post) {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+
+    // Tạo một file zip
+    const output = fs.createWriteStream(__dirname + '/post.zip');
+    const archive = archiver('zip', {
+      zlib: { level: 9 } // Nén file zip với mức độ nén cao nhất
+    });
+
+    // Đặt tên file trong file zip
+    const fileName = post.article_file;
+    archive.file(__dirname + '/uploads/' + fileName, { name: fileName });
+
+    // Pipe file zip đến output
+    archive.pipe(output);
+
+    // Khi tạo file zip hoàn thành, gửi file zip về client
+    output.on('close', () => {
+      res.download(__dirname + '/post.zip', 'post.zip', (err) => {
+        if (err) {
+          console.error(err);
+          return res.status(500).json({ error: 'Server error' });
+        }
+      });
+    });
+
+    // Ghi log nếu có lỗi xảy ra trong quá trình tạo file zip
+    archive.on('error', (err) => {
+      console.error(err);
+      return res.status(500).json({ error: 'Server error' });
+    });
+
+    // Kết thúc và đóng file zip
+    archive.finalize();
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.post('/addComment/:article_id', async (req, res) => {
+  try {
+    const author_id = req.cookies.uid;
+    const article_id = req.params.article_id;
+    const { content } = req.body;
+    const connection = await pool.getConnection();
+    const [rows] = await connection.query(
+      "INSERT INTO Comment(author_id, content, article_id, time_created) VALUES(?, ?, ?, ?)",
+      [author_id, content, article_id, new Date().toString()]
+    );
+    
+    connection.release()
+
+    // Trả về phản hồi là comment đã được thêm thành công
+    res.status(200).json({ message: 'Comment added successfully' });
+  } catch (error) {
+    console.error('Error adding comment:', error);
+    res.status(500).json({ message: 'Failed to add comment' });
+  }
+});
+
+app.get('/api/comments/:postId', async (req, res) => {
+  try {
+    const postId = req.params.postId;
+
+    const connection = await pool.getConnection();
+    const [comments] = await connection.query(
+      "SELECT * FROM Comment INNER JOIN departmentManager ON departmentManager.department_manager_id = Comment.author_id WHERE Comment.article_id= ?",
+      [postId]
+    );
+    connection.release()
+    res.status(200).json(comments);
+  } catch (error) {
+    console.error('Error fetching comments:', error);
+    res.status(500).json({ message: 'Failed to fetch comments' });
+  }
+});
+
 
 // Khởi động server
 const PORT = process.env.PORT || 3000;

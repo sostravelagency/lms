@@ -1,0 +1,134 @@
+<!-- adminManagePosts.ejs -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin - Manage Posts</title>
+    <!-- Liên kết với Bootstrap 5 CSS -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <!-- Liên kết với Axios -->
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.8/axios.min.js"
+      integrity="sha512-PJa3oQSLWRB7wHZ7GQ/g+qyv6r4mbuhmiDb8BjSFZ8NZ2a42oTtAq5n0ucWAwcQDlikAtkub+tPVCw4np27WCg=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+  </head>
+  <body>
+    <div class="container mt-5">
+      <div class="row">
+        <div class="col-md-12">
+          <h1>Admin - Manage Posts</h1>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Attachment</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% posts.forEach((post) => { %>
+              <tr>
+                <td><%= post.article_title %></td>
+                <td>
+                  <% if (post.article_file.endsWith('.jpg') ||
+                  post.article_file.endsWith('.jpeg') ||
+                  post.article_file.endsWith('.png') ||
+                  post.article_file.endsWith('.gif')) { %>
+                  <a
+                    href="http://localhost:3000/uploads/<%= post.article_file %>"
+                    ><%= post.article_file %></a
+                  >
+                  <% } if (post.article_file.endsWith('.pdf') ||
+                  post.article_file.endsWith('.doc') ||
+                  post.article_file.endsWith('.docx') ||
+                  post.article_file.endsWith('.txt')) { %>
+                  <a
+                    href="http://localhost:3000/uploads/<%= post.article_file %>"
+                    ><%= post.article_file %></a
+                  >
+                  <% } %>
+                </td>
+                <td>
+                  <a
+                    href="/editArticle/admin/<%= post.article_id %>"
+                    class="btn btn-primary"
+                    >Edit</a
+                  >
+                  <a
+                    href="#"
+                    onclick="deletePost('<%= post.article_id %>')"
+                    class="btn btn-danger"
+                    >Delete</a
+                  >
+                  <a
+                    href="http://localhost:3000/uploads/<%= post.article_file %>"
+                    class="btn btn-secondary"
+                    download
+                    >Download</a
+                  >
+                  <!-- Xử lý khi nhấn nút "Set as Default" -->
+                  <!-- <button onclick="setDefaultPage('<%= post.article_id %>')" class="btn btn-info">Set as Default</button> -->
+                </td>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Hàm xử lý khi nhấn nút "Delete"
+      function deletePost(articleId) {
+        // Gửi yêu cầu DELETE đến server để xoá bài viết có id là articleId
+        axios
+          .delete(`/deleteArticle/admin/${articleId}`)
+          .then(function (response) {
+            // Xử lý khi server trả về phản hồi thành công
+            console.log(response.data);
+            // Hiển thị thông báo
+            alert("Delete successful");
+            // Tải lại trang để cập nhật danh sách bài viết
+            location.reload();
+          })
+          .catch(function (error) {
+            // Xử lý khi có lỗi xảy ra
+            console.error(error);
+            // Hiển thị thông báo lỗi
+            alert("Error occurred");
+          });
+      }
+    </script>
+    <!-- Liên kết với Bootstrap 5 JS và các thư viện JavaScript cần thiết -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.10.2/umd/popper.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/js/bootstrap.min.js"></script>
+
+    <script>
+      // Hàm xử lý khi nhấn nút "Set as Default"
+      function setDefaultPage(articleId) {
+        // Gửi yêu cầu POST đến server để set bài viết có id là articleId làm trang chính
+        axios
+          .post("/set-default-page/" + articleId)
+          .then(function (response) {
+            // Xử lý khi server trả về phản hồi thành công
+            console.log(response.data);
+            // Hiện popup thông báo thành công
+            alert("Set as default successful");
+          })
+          .catch(function (error) {
+            // Xử lý khi có lỗi xảy ra
+            console.error(error);
+            // Hiện popup thông báo lỗi
+            alert("Error occurred");
+          });
+      }
+    </script>
+  </body>
+</html>

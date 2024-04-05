@@ -32,7 +32,7 @@
                 <th scope="row"><%= index + 1 %></th>
                 <td><%= student.student_name %></td>
                 <td><%= student.student_email %></td>
-                <td><%= student.student_department_id %></td>
+                <td><%= student.department_name %></td>
                 <td>
                   <a href="/students/edit/<%= student.student_id %>" class="btn btn-primary btn-sm">Edit</a> <!-- Nút sửa sinh viên -->
                   <a href="/students/delete/<%= student.student_id %>" class="btn btn-danger btn-sm">Delete</a> <!-- Nút xóa sinh viên -->

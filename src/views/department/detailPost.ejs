@@ -1,60 +1,127 @@
-<!-- viewPostWithComments.ejs -->
-
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>View Post with Comments</title>
-  <!-- Liên kết với Bootstrap 5 CSS -->
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
-  <div class="container mt-5">
-    <h1>View Post with Comments</h1>
-    <!-- Hiển thị thông tin bài viết -->
-    <div class="card mb-4">
-      <div class="card-body">
-        <h5 class="card-title"><%= post.article_title %> by <%= author.student_name %></h5>
-        <p class="card-text"><%= post.content %></p>
-        <% if (post.attachmentType === 'image') { %>
-          <img src="<%= post.attachment %>" class="img-fluid" alt="Attachment">
-        <% } else if (post.attachmentType === 'document') { %>
-          <p>Attached document: <a href="<%= post.attachment %>"><%= post.attachmentName %></a></p>
-        <% } %>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>View Post with Comments</title>
+    <!-- Liên kết với Bootstrap 5 CSS -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="container mt-5">
+      <h1>View Post with Comments</h1>
+      <!-- Hiển thị thông tin bài viết -->
+      <div class="card mb-4">
+        <div class="card-body">
+          <h5 class="card-title">
+            <%= post.article_title %> by <%= author.student_name %>
+          </h5>
+          <p class="card-text"><%= post.content %></p>
+          <% if (post.attachmentType === 'image') { %>
+          <img
+            src="<%= post.attachment %>"
+            class="img-fluid"
+            alt="Attachment"
+          />
+          <% } else if (post.attachmentType === 'document') { %>
+          <p>
+            Attached document:
+            <a href="<%= post.attachment %>"><%= post.attachmentName %></a>
+          </p>
+          <% } %>
+        </div>
+      </div>
+
+      <!-- Hiển thị bảng comment -->
+      <h2>Comments</h2>
+      <table class="table" id="commentsTable">
+        <thead>
+          <tr>
+            <th scope="col">Author</th>
+            <th scope="col">Comment</th>
+          </tr>
+        </thead>
+        <tbody>
+        </tbody>
+      </table>
+
+      <!-- Form thêm mới comment -->
+      <h2>Add New Comment</h2>
+      <div id="addCommentForm">
+        <div class="mb-3">
+          <label for="content" class="form-label">Comment</label>
+          <textarea
+            class="form-control"
+            id="content"
+            name="content"
+            rows="3"
+            required
+          ></textarea>
+        </div>
+        <button type="button" class="btn btn-primary" onclick="addComment()">
+          Add Comment
+        </button>
       </div>
     </div>
-    <!-- Hiển thị bảng comment -->
-    <h2>Comments</h2>
-    <table class="table">
-      <thead>
-        <tr>
-          <th scope="col">Author</th>
-          <th scope="col">Comment</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% comments.forEach((comment) => { %>
-          <tr>
-            <td><%= comment.author %></td>
-            <td><%= comment.content %></td>
-          </tr>
-        <% }); %>
-      </tbody>
-    </table>
-    <!-- Form thêm mới comment -->
-    <h2>Add New Comment</h2>
-    <form action="/addComment/<%= post.id %>" method="post">
-      <div class="mb-3">
-        <label for="content" class="form-label">Comment</label>
-        <textarea class="form-control" id="content" name="content" rows="3" required></textarea>
-      </div>
-      <button type="submit" class="btn btn-primary">Add Comment</button>
-    </form>
-  </div>
 
-  <!-- Liên kết với Bootstrap 5 JS và các thư viện JavaScript cần thiết -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.10.2/umd/popper.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/js/bootstrap.min.js"></script>
-</body>
+    <!-- Liên kết với Bootstrap 5 JS và các thư viện JavaScript cần thiết -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.10.2/umd/popper.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/js/bootstrap.min.js"></script>
+    <!-- Liên kết với Axios -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.24.0/axios.min.js"></script>
+    <script>
+      // Hàm thêm comment mới
+      function addComment() {
+        const content = document.getElementById("content").value;
+        const postId = "<%= post.article_id %>";
+
+        // Gửi yêu cầu POST đến server để thêm comment
+        axios
+          .post(`/addComment/${postId}`, { content })
+          .then((response) => {
+            // Xử lý kết quả thành công
+            console.log(response.data);
+            listComment()
+
+            // Xóa nội dung comment trong form sau khi thêm thành công
+            document.getElementById("content").value = "";
+          })
+          .catch((error) => {
+            // Xử lý khi có lỗi xảy ra
+            console.error("Error adding comment:", error);
+          });
+      }
+
+      // Hàm cập nhật bảng comment sau khi thêm mới
+      function updateCommentsTable(list) {
+        return (document.querySelector("tbody").innerHTML = list.reverse()
+          .map(
+            (item) => `
+        <tr>
+          <td>${item.manager_name}</td>
+          <td>${item.content}</td>
+          </tr>
+        `
+          )
+          .join(""));
+      }
+
+      const listComment = async () => {
+        const postId = "<%= post.article_id %>";
+        axios
+          .get(`/api/comments/${postId}`)
+          .then((response) => {
+            const comments = response.data;
+            updateCommentsTable(comments);
+          })
+          .catch((error) => {
+            console.error("Error fetching comments:", error);
+          });
+      };
+      listComment();
+    </script>
+  </body>
 </html>
