@@ -916,6 +916,16 @@ app.get("/marketing", async (req, res) => {
   res.render("marketing", { title: "Post manager", posts: rows });
 });
 
+app.get("/admin/post/global", async (req, res) => {
+  const connection = await pool.getConnection();
+  const [rows] = await connection.query(
+    "SELECT * FROM post INNER JOIN student ON post.article_author_id = student.student_id",
+  );
+  connection.release();
+  console.log(rows);
+  res.render("admin/manage_post", { title: "Post manager", posts: rows });
+});
+
 
 app.get('/admin/downloadPostsZip', async (req, res) => {
   try {
