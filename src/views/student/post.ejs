@@ -28,11 +28,20 @@
           <% } else if (post.article_file && post.article_file.endsWith('.pdf') || post.article_file.endsWith('.doc') || post.article_file.endsWith('.docx') || post.article_file.endsWith('.txt')) { %>
             <p>Attached document: <a download href="http://localhost:3000/uploads/<%= post.article_file %>"><%= post.article_file %></a></p>
           <% } %>
+          
         <!-- Thêm nút sửa bài viết -->
         <div></div>
         <br>
         <div></div>
         <a href="/student/editArticle/<%= post.article_id %>" class="btn btn-primary">Edit</a>
+        <button class="btn btn-primary">
+          <a
+            download
+            href="http://localhost:3000/uploads/<%= post.article_file %>"
+            style="color: white"
+            >Download</a
+          >
+        </button>
       </div>
     <% }); %>
   </div>
