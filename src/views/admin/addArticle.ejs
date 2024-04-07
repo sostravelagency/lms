@@ -10,14 +10,14 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-  <%- include('../partials/navbarAdmin') %>
+  <% include('../partials/navbarAdmin') %>
   <div class="container mt-5">
 
     <div class="row justify-content-center">
       <div class="col-md-6">
         <h1 class="mb-4">Add Article</h1>
         <!-- Form để đăng bài viết -->
-        <form method="post" enctype="multipart/form-data">
+        <form method="post" enctype="multipart/form-data" id="articleForm">
           <div class="mb-3">
             <label for="title" class="form-label">Title</label>
             <input type="text" class="form-control" id="title" name="title" placeholder="Enter title" required>
@@ -30,8 +30,12 @@
             <label for="file" class="form-label">Upload Image or Document</label>
             <input type="file" class="form-control" id="file" name="file">
           </div>
+          <div class="mb-3 form-check">
+            <input type="checkbox" class="form-check-input" id="agreePolicy" required>
+            <label class="form-check-label" for="agreePolicy">I agree with the policy</label>
+          </div>
           <input type="hidden" name="student_id" value="<%= uid %>">
-          <button type="submit" class="btn btn-primary">Add Article</button>
+          <button type="submit" class="btn btn-primary" id="submitButton" disabled>Add Article</button>
         </form>
       </div>
     </div>
@@ -40,5 +44,12 @@
   <!-- Liên kết với Bootstrap 5 JS và các thư viện JavaScript cần thiết -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.10.2/umd/popper.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/js/bootstrap.min.js"></script>
+
+  <!-- Script để kích hoạt nút khi checkbox được check -->
+  <script>
+    document.getElementById('agreePolicy').addEventListener('change', function() {
+      document.getElementById('submitButton').disabled = !this.checked;
+    });
+  </script>
 </body>
 </html>

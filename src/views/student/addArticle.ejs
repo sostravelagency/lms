@@ -10,7 +10,7 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-  <%- include('../partials/navbar') %>
+  <% include('../partials/navbar') %>
   <div class="container mt-5">
 
     <div class="row justify-content-center">
@@ -30,8 +30,12 @@
             <label for="file" class="form-label">Upload Image or Document</label>
             <input type="file" class="form-control" id="file" name="file">
           </div>
+          <div class="mb-3 form-check">
+            <input type="checkbox" class="form-check-input" id="agreePolicy" required>
+            <label class="form-check-label" for="agreePolicy">I agree with the policy</label>
+          </div>
           <input type="hidden" name="student_id" value="<%= uid %>">
-          <button type="submit" class="btn btn-primary">Add Article</button>
+          <button type="submit" class="btn btn-primary" id="submitButton" disabled>Add Article</button>
         </form>
       </div>
     </div>
@@ -40,5 +44,12 @@
   <!-- Liên kết với Bootstrap 5 JS và các thư viện JavaScript cần thiết -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.10.2/umd/popper.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/js/bootstrap.min.js"></script>
+
+  <!-- Script để kích hoạt nút khi checkbox được check -->
+  <script>
+    document.getElementById('agreePolicy').addEventListener('change', function() {
+      document.getElementById('submitButton').disabled = !this.checked;
+    });
+  </script>
 </body>
 </html>

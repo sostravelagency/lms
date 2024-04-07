@@ -36,7 +36,11 @@
               <p>Current attachment: <a href="http://localhost:3000/uploads/<%= article.article_file %>"><%= article.article_file %></a></p>
             <% } %>
           </div>
-          <button type="submit" class="btn btn-primary">Update Article</button>
+          <div class="mb-3 form-check">
+            <input type="checkbox" class="form-check-input" id="agreePolicy" required>
+            <label class="form-check-label" for="agreePolicy">I agree with the policy</label>
+          </div>
+          <button type="submit" class="btn btn-primary" id="updateButton" disabled>Update Article</button>
         </form>
       </div>
     </div>
@@ -45,5 +49,12 @@
   <!-- Liên kết với Bootstrap 5 JS và các thư viện JavaScript cần thiết -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.10.2/umd/popper.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/js/bootstrap.min.js"></script>
+
+  <!-- Script để kích hoạt nút khi checkbox được check -->
+  <script>
+    document.getElementById('agreePolicy').addEventListener('change', function() {
+      document.getElementById('updateButton').disabled = !this.checked;
+    });
+  </script>
 </body>
 </html>
